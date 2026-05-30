@@ -17,13 +17,13 @@ function guardarAgendaDoctor() {
     horaFin
   });
 
-  notificar('✅ Tu horario de atención ha sido actualizado.');
+  notificar('Tu horario de atención ha sido actualizado.');
   renderMiAgendaDoctor();
 }
 
 function borrarAgendaDoctor(id) {
   if (!confirm('¿Deseas eliminar este bloque de tu horario de atención?')) return;
   estado.agendas = estado.agendas.filter(a => a.id !== id);
-  notificar('🗑️ Horario eliminado.');
+  notificar('Horario eliminado.');
   renderMiAgendaDoctor();
 }

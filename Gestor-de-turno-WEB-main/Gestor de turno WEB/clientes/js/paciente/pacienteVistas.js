@@ -2,30 +2,38 @@ function renderNuevoTurno() {
   const { paso, especialidadId, doctorId } = estado.nuevoTurno;
   let contenido = '';
 
+  //SELECCIÓN DE ESPECIALIDAD
   if (paso === 1) {
-    contenido = `<div class="grid-branches">${estado.especialidades.map(e => `<div class="branch-card" style="border-left:5px solid ${e.color}" onclick="seleccionarEspecialidad(${e.id})"><span style="font-size:30px">${e.icono}</span><div><div style="font-weight:700;color:${e.color};font-size:15px">${e.nombre}</div></div></div>`).join('')}</div>`;
+    contenido = `
+      <div class="grid-branches">
+        ${estado.especialidades.map(e => `
+          <div class="branch-card" style="border-left:5px solid ${e.color}; background: white; border-top: 1px solid ${COLOR_MINT.mintLight}44; border-right: 1px solid ${COLOR_MINT.mintLight}44; border-bottom: 1px solid ${COLOR_MINT.mintLight}44;" onclick="seleccionarEspecialidad(${e.id})">
+            <div><div style="font-weight:700; color:${COLOR_MINT.emeraldDark}; font-size:16px;">${e.nombre}</div></div>
+          </div>
+        `).join('')}
+      </div>
+    `;
   }
-  
+  // SELECCIÓN DE PROFESIONAL
   else if (paso === 2) {
     const esp = estado.especialidades.find(e => e.id == especialidadId);
     const medicosFiltrados = estado.usuarios.filter(u => u.rol === 'DOCTOR' && u.especialidadId == especialidadId);
-
     const listaMedicosHTML = medicosFiltrados.map(m => `
-      <div class="card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:15px; border-left: 3px solid #0ea5e9;">
-        <div><span style="font-size:20px; margin-right:10px;">🩺</span><strong>${m.nombreCompleto}</strong></div>
-        <button class="btn btn-primary" onclick="seleccionarDoctor(${m.id})">Ver Calendario</button>
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:15px; border-left: 4px solid ${COLOR_MINT.vibrantMint}; background: white;">
+        <div><strong style="color: ${COLOR_MINT.emeraldDark};">${m.nombreCompleto}</strong></div>
+        <button class="btn btn-primary" style="background-color: ${COLOR_MINT.vibrantMint}; border-color: ${COLOR_MINT.vibrantMint}; font-weight:600;" onclick="seleccionarDoctor(${m.id})">Ver Calendario</button>
       </div>
     `).join('');
 
     contenido = `
-      <div class="card" style="max-width:650px;">
-        <h3 style="margin-bottom:16px; color:${esp.color}">Especialistas en ${esp.nombre}</h3>
-        <div style="margin-top:15px;">${listaMedicosHTML || '<p style="color:var(--text-muted);">No hay médicos disponibles para esta especialidad.</p>'}</div>
-        <button class="btn btn-ghost" style="margin-top:15px;" onclick="irPasoTurno(1)">Volver</button>
+      <div class="card" style="max-width:650px; background: white; border: 1px solid ${COLOR_MINT.mintLight};">
+        <h3 style="margin-bottom:16px; color:${COLOR_MINT.emeraldDark}; font-weight:700;">Especialistas en ${esp.nombre}</h3>
+        <div style="margin-top:15px;">${listaMedicosHTML || `<p style="color:${COLOR_MINT.lightGray};">No hay médicos disponibles para esta especialidad.</p>`}</div>
+        <button class="btn btn-ghost" style="margin-top:15px; border:1px solid ${COLOR_MINT.mintLight}; color: ${COLOR_MINT.waterGreen};" onclick="irPasoTurno(1)">Volver</button>
       </div>
     `;
   }
-  
+  // CALENDARIO DE TURNOS
   else if (paso === 3) {
     const esp = estado.especialidades.find(e => e.id == especialidadId);
     const doc = estado.usuarios.find(u => u.id == doctorId);
@@ -34,157 +42,84 @@ function renderNuevoTurno() {
     const primerDia = new Date(anioActual, mesActual, 1).getDay();
     const diasEnMes = new Date(anioActual, mesActual + 1, 0).getDate();
     let offset = primerDia === 0 ? 6 : primerDia - 1;
-
+    
     let celdas = '';
-    for (let i = 0; i < offset; i++) celdas += `<div class="cal-day empty"></div>`;
-
+    for (let i = 0; i < offset; i++) celdas += `<div class="cal-day empty" style="background: #e2e8f0;"></div>`;
+    
     const agendasDelDoc = estado.agendas.filter(a => a.doctorId == doctorId);
 
     for (let dia = 1; dia <= diasEnMes; dia++) {
       const fechaFmt = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
       const diaDeLaSemana = new Date(anioActual, mesActual, dia).getDay();
-      
       const turnosDia = agendasDelDoc.filter(a => a.diaSemana === diaDeLaSemana);
-      const turnosBtn = turnosDia.map(t => `<div class="turno-btn" onclick="seleccionarTurnoCalendario('${fechaFmt}', '${t.horaInicio}')">🕖 ${t.horaInicio}</div>`).join('');
-      
-      celdas += `<div class="cal-day"><div class="cal-num">${dia}</div>${turnosBtn}</div>`;
+      const turnosBtn = turnosDia.map(t => `<div class="turno-btn-mint" onclick="seleccionarTurnoCalendario('${fechaFmt}', '${t.horaInicio}')">${t.horaInicio}</div>`).join('');
+      celdas += `<div class="cal-day" style="background: white; border: 1px solid #e2e8f0;"><div class="cal-num" style="color: ${COLOR_MINT.emeraldDark}; font-weight:700;">${dia}</div>${turnosBtn}</div>`;
     }
 
     contenido = `
       <style>
-        .pink-cal-wrapper { font-family: sans-serif; background: #fffdfef; border: 1px solid #707070; margin-top: 10px; border-radius: 8px; overflow: hidden; }
-        .cal-header-row { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--bg-deep); text-align: center; font-weight: 700; font-size: 12px; border-bottom: 1px solid #707070; }
-        .cal-header-row div { padding: 10px 0; border-right: 1px solid #707070; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: #444; gap: 1px; }
-        .cal-day { background: var(--bg-card); min-height: 90px; padding: 6px; display: flex; flex-direction: column; gap: 5px; }
-        .cal-day.empty { background: #2a2a2a; }
-        .cal-num { font-weight: 700; color: var(--text-muted); font-size: 14px; text-align: left; }
-        .turno-btn { background: #0ea5e9; color: white; text-align: center; padding: 4px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
-        .turno-btn:hover { background: #0284c7; }
+        .mint-cal-container { font-family: sans-serif; background: #fff; border: 1px solid ${COLOR_MINT.mintLight}; margin-top: 10px; border-radius: 8px; overflow: hidden; }
+        .cal-header-mint { display: grid; grid-template-columns: repeat(7, 1fr); background: ${COLOR_MINT.emeraldDark}; color: white; text-align: center; font-weight: 700; font-size: 12px; }
+        .cal-header-mint div { padding: 12px 0; border-right: 1px solid ${COLOR_MINT.mintLight}33; }
+        .cal-grid-mint { display: grid; grid-template-columns: repeat(7, 1fr); background: #cbd5e1; gap: 1px; }
+        .cal-day { min-height: 95px; padding: 6px; display: flex; flex-direction: column; gap: 5px; }
+        .turno-btn-mint { background: ${COLOR_MINT.vibrantMint}; color: white; text-align: center; padding: 5px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; transition: background 0.2s; }
+        .turno-btn-mint:hover { background: #20a878; }
       </style>
-      <div class="card" style="max-width:800px; width: 100%;">
-        <h3 style="margin-bottom:5px;">${esp.icono} Turnos con ${doc.nombreCompleto}</h3>
+      <div class="card" style="max-width:800px; width: 100%; background: white; border: 1px solid ${COLOR_MINT.mintLight};">
+        <h3 style="margin-bottom:3px; color: ${COLOR_MINT.emeraldDark}; font-weight:700;">Turnos Disponibles con ${doc.nombreCompleto}</h3>
+        <p style="color: ${COLOR_MINT.lightGray}; font-size:13px; margin-bottom:15px; margin-top:0;">Especialidad: ${esp.nombre}</p>
         
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-          <button class="btn btn-ghost" onclick="cambiarMesTurnosPaciente(-1)">◀ Anterior</button>
-          <h4 style="margin:0; font-size:18px;">${nombresMeses[mesActual]} ${anioActual}</h4>
-          <button class="btn btn-ghost" onclick="cambiarMesTurnosPaciente(1)">Siguiente ▶</button>
+          <button class="btn btn-ghost" style="border: 1px solid ${COLOR_MINT.mintLight}; color: ${COLOR_MINT.emeraldDark};" onclick="cambiarMesTurnosPaciente(-1)">Anterior</button>
+          <h4 style="margin:0; font-size:18px; color: ${COLOR_MINT.emeraldDark}; font-weight:700;">${nombresMeses[mesActual]} ${anioActual}</h4>
+          <button class="btn btn-ghost" style="border: 1px solid ${COLOR_MINT.mintLight}; color: ${COLOR_MINT.emeraldDark};" onclick="cambiarMesTurnosPaciente(1)">Siguiente</button>
         </div>
 
-        <div class="pink-cal-wrapper">
-          <div class="cal-header-row"><div>LUN</div><div>MAR</div><div>MIE</div><div>JUE</div><div>VIE</div><div>SAB</div><div>DOM</div></div>
-          <div class="cal-grid">${celdas}</div>
+        <div class="mint-cal-container">
+          <div class="cal-header-mint"><div>LUN</div><div>MAR</div><div>MIE</div><div>JUE</div><div>VIE</div><div>SAB</div><div>DOM</div></div>
+          <div class="cal-grid-mint">${celdas}</div>
         </div>
-        <button class="btn btn-ghost" style="margin-top:20px;" onclick="irPasoTurno(2)">Volver a Médicos</button>
+        <button class="btn btn-ghost" style="margin-top:20px; border:1px solid ${COLOR_MINT.mintLight}; color: ${COLOR_MINT.waterGreen};" onclick="irPasoTurno(2)">Volver a Médicos</button>
       </div>
     `; 
   }
-  
+  // CONFIRMACIÓN FINAL
   else if (paso === 4) {
     const esp = estado.especialidades.find(e => e.id == especialidadId);
     const doc = estado.usuarios.find(u => u.id == doctorId);
     contenido = `
-      <div class="card" style="max-width:480px; border-left: 4px solid #059669;">
-        <h3 style="font-weight:700; margin-bottom:16px">Resumen del Turno</h3>
-        <p style="margin-bottom:8px;"><strong>Especialidad:</strong> ${esp.nombre}</p>
-        <p style="margin-bottom:8px;"><strong>Profesional:</strong> ${doc.nombreCompleto}</p>
-        <p style="margin-bottom:8px;"><strong>Fecha pautada:</strong> ${estado.nuevoTurno.fecha}</p>
-        <p style="margin-bottom:8px;"><strong>Horario de cita:</strong> ${estado.nuevoTurno.hora} hs</p>
+      <div class="card" style="max-width:480px; border-left: 4px solid ${COLOR_MINT.vibrantMint}; background: white; box-shadow: 0 4px 14px rgba(0,0,0,0.05);">
+        <h3 style="font-weight:700; margin-bottom:16px; color: ${COLOR_MINT.emeraldDark};">Resumen del Turno</h3>
+        <p style="margin-bottom:8px; color: #333;"><strong>Especialidad:</strong> ${esp.nombre}</p>
+        <p style="margin-bottom:8px; color: #333;"><strong>Profesional:</strong> ${doc.nombreCompleto}</p>
+        <p style="margin-bottom:8px; color: #333;"><strong>Fecha pautada:</strong> ${estado.nuevoTurno.fecha}</p>
+        <p style="margin-bottom:8px; color: #333;"><strong>Horario de cita:</strong> ${estado.nuevoTurno.hora} hs</p>
         <div style="display:flex; gap:10px; margin-top:25px">
-          <button class="btn btn-ghost" onclick="irPasoTurno(3)">Atrás</button>
-          <button class="btn btn-success" style="flex:1" onclick="confirmarTurno()">✅ Confirmar y Solicitar</button>
+          <button class="btn btn-ghost" style="border:1px solid ${COLOR_MINT.mintLight}; color: ${COLOR_MINT.lightGray};" onclick="irPasoTurno(3)">Atrás</button>
+          <button class="btn btn-success" style="flex:1; background-color: ${COLOR_MINT.vibrantMint}; border-color: ${COLOR_MINT.vibrantMint}; font-weight:700;" onclick="confirmarTurno()">Confirmar y Solicitar</button>
         </div>
       </div>
     `;
   }
 
-  renderizar(`<div id="app-layout">${htmlSidebar('nuevo_turno')}<div id="main-content" class="fade-in"><h1 class="page-title">Pedir Turno Médico</h1><div style="margin-bottom:20px; color:var(--text-muted); font-size:14px;">Progreso: Paso ${paso} de 4</div>${contenido}</div></div>`);
+  renderizar(`<div id="app-layout">${htmlSidebar('nuevo_turno')}<div id="main-content" class="fade-in" style="background-color: ${COLOR_MINT.bgTint};"><h1 class="page-title" style="color: ${COLOR_MINT.emeraldDark};">Pedir Turno Médico</h1><div style="margin-bottom:20px; color:${COLOR_MINT.lightGray}; font-size:14px;">Progreso: Paso ${paso} de 4</div>${contenido}</div></div>`);
 }
 
 function renderHistorial() {
-  // 1. Buscamos el historial real (turnos completados de este paciente)
-  const misRegistros = estado.turnos.filter(t => 
-    t.pacienteNombre === estado.usuario.nombreCompleto && 
-    t.estado === 'COMPLETADO'
-  );
-
-  // 2. Armamos las filas de la tabla dinámicamente
+  const misRegistros = estado.turnos.filter(t => t.pacienteNombre === estado.usuario.nombreCompleto && t.estado === 'COMPLETADO');
   let filasHTML = '';
   
   if (misRegistros.length === 0) {
-    // Si no hay registros, mostramos el mensaje vacío sin botones
-    filasHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">No hay registros médicos aún.</td></tr>`;
+    filasHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px; color: ${COLOR_MINT.lightGray};">No hay registros médicos aún.</td></tr>`;
   } else {
-    // Si hay registros, creamos una fila por cada uno con su botón de imprimir
     filasHTML = misRegistros.map(t => {
       const esp = estado.especialidades.find(e => e.id == t.especialidadId);
-      return `
-        <tr>
-          <td><strong>${t.fecha}</strong></td>
-          <td>${esp ? esp.nombre : '—'}</td>
-          <td>${t.doctorNombre}</td>
-          <td>${t.diagnostico || 'Atención completada'}</td>
-          <td style="text-align:center;">
-            <button class="btn btn-ghost" style="font-size:12px; padding:6px 10px; border: 1px solid #ccc;" onclick="window.print()">🖨️ Imprimir</button>
-          </td>
-        </tr>
-      `;
+      return `<tr><td><strong>${t.fecha}</strong></td><td>${esp ? esp.nombre : '—'}</td><td>${t.doctorNombre}</td><td>${t.diagnostico || 'Atención completada'}</td><td style="text-align:center;"><button class="btn btn-ghost" style="font-size:12px; padding:6px 10px; border: 1px solid ${COLOR_MINT.mintLight}; color:${COLOR_MINT.emeraldDark}; font-weight:600;" onclick="window.print()">Imprimir</button></td></tr>`;
     }).join('');
   }
 
-  // 3. Mantenemos tus estilos de impresión perfectos
-  const estilosImpresion = `
-    <style>
-      @media print {
-        /* Ocultar el menu lateral y los botones al imprimir */
-        #sidebar, .btn {
-          display: none !important;
-        }
-        
-        /* Hace que el contenido principal ocupe toda la hoja blanca */
-        #main-content {
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100% !important;
-          background: white !important;
-          color: black !important;
-        }
-        
-        /* Limpiamos fondos y bordes */
-        body, .card {
-          background: white !important;
-          color: black !important;
-          border: none !important;
-          box-shadow: none !important;
-        }
-      }
-    </style>
-  `;
+  const estilosImpresion = `<style>@media print { #sidebar, .btn { display: none !important; } #main-content { margin: 0 !important; padding: 0 !important; width: 100% !important; background: white !important; color: black !important; } body, .card { background: white !important; color: black !important; border: none !important; box-shadow: none !important; } }</style>`;
 
-  // 4. Renderizamos la vista final (Nota que quité el botón global de arriba)
-  renderizar(`
-      ${estilosImpresion}
-      <div id="app-layout">${htmlSidebar('historial')}<div id="main-content" class="fade-in">
-          <h1 class="page-title">Mi Historial Médico</h1>
-          
-          <div class="card" style="margin-top:20px; border-top: 4px solid #0ea5e9;">
-              <div class="table-wrapper">
-                  <table>
-                      <thead>
-                        <tr>
-                          <th>Fecha</th>
-                          <th>Especialidad</th>
-                          <th>Médico</th>
-                          <th>Diagnóstico</th>
-                          <th style="text-align:center;">Descargar</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        ${filasHTML}
-                      </tbody>
-                  </table>
-              </div>
-          </div>
-      </div></div>
-  `);
+  renderizar(`${estilosImpresion}<div id="app-layout">${htmlSidebar('historial')}<div id="main-content" class="fade-in" style="background-color: ${COLOR_MINT.bgTint};"><h1 class="page-title" style="color: ${COLOR_MINT.emeraldDark};">Mi Historial Médico</h1><div class="card" style="margin-top:20px; border-top: 4px solid ${COLOR_MINT.waterGreen}; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);"><div class="table-wrapper"><table><thead><tr style="background-color: ${COLOR_MINT.emeraldDark}; color: white;"><th>Fecha</th><th>Especialidad</th><th>Médico</th><th>Diagnóstico</th><th style="text-align:center;">Descargar</th></tr></thead><tbody>${filasHTML}</tbody></table></div></div></div></div>`);
 }

@@ -1,7 +1,3 @@
-/* =========================================================================
-   LÓGICA DEL PACIENTE (4 PASOS)
-========================================================================= */
-
 function seleccionarEspecialidad(id) {
   estado.nuevoTurno.especialidadId = id;
   estado.nuevoTurno.doctorId = null; 

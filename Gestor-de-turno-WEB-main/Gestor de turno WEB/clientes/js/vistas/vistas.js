@@ -1,43 +1,171 @@
-/* =========================================================================
-   VISTAS GLOBALES Y DISEÑO BASE
-========================================================================= */
+// Definición de variables de color globales
+const COLOR_MINT = {
+  whiteGlass: 'rgba(255, 255, 255, 0.85)',
+  vibrantMint: '#28C78E',
+  emeraldDark: '#18564B',
+  mintLight: '#8CD3BA',
+  waterGreen: '#5FABA0',
+  lightGray: '#7F8C8D',
+  bgTint: '#F0F9F6'
+};
+
+// BLOQUE PARA FORZAR EL DISEÑO MINT SOBRE EL CSS VIEJO
+const estilosGlobalesMint = `
+  <style>
+    /* Forzar el color esmeralda en todas las cabeceras de tablas */
+    table thead th, th {
+      background-color: ${COLOR_MINT.emeraldDark} !important;
+      color: white !important;
+      border: none !important;
+    }
+    
+    /* Forzar el estilo claro e iluminado en el menú lateral activo */
+    .nav-item.active {
+      background-color: ${COLOR_MINT.bgTint} !important;
+      color: ${COLOR_MINT.emeraldDark} !important;
+      border-left: 4px solid ${COLOR_MINT.vibrantMint} !important;
+    }
+    
+    /* Efecto hover suave para los botones del menú inactivos */
+    .nav-item:hover:not(.active) {
+      background-color: rgba(140, 211, 186, 0.15) !important;
+    }
+
+    /* Asegurar que el fondo de las tablas sea blanco */
+    .table-wrapper {
+      background: white !important;
+    }
+  </style>
+`;
 
 function notificar(mensaje, tipo = 'success') {
   const el = document.getElementById('notification');
   el.textContent = mensaje;
   el.style.display = 'block';
-  el.style.background = tipo === 'error' ? '#dc2626' : '#059669';
+  el.style.background = tipo === 'error' ? '#dc2626' : COLOR_MINT.vibrantMint;
   el.style.color = '#fff';
   clearTimeout(el._timer);
   el._timer = setTimeout(() => { el.style.display = 'none'; }, 3000);
 }
 
+// Inyectamos los estilos globales automáticamente en cada renderizado
 function renderizar(html) {
   const root = document.getElementById('root');
-  root.innerHTML = html;
+  root.innerHTML = estilosGlobalesMint + html;
   root.firstElementChild?.classList.add('fade-in');
 }
 
-// --- PANTALLAS DE LOGIN SEPARADAS ---
+// Estilos CSS comunes para el Login con efecto Cristal Acrílico (Glassmorphism)
+const estilosLoginComunes = `
+  <style>
+    .auth-background {
+      position: relative;
+      width: 100vw;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+      z-index: 1;
+    }
+    
+    /*imagen de fondo pura y el tinte verde */
+    .auth-background::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(rgba(24, 86, 75, 0.4), rgba(24, 86, 75, 0.6)), url('img/doctor.jpg') no-repeat center top/cover;
+      z-index: -2;
+    }
+    
+    /*efecto de blur */
+    .auth-background::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      mask-image: radial-gradient(circle at center 30%, transparent 15%, black 50%);
+      -webkit-mask-image: radial-gradient(circle at center 30%, transparent 15%, black 50%);
+      z-index: -1;
+    }
+    
+    /*tarjeta de login acrílica */
+    .glass-box {
+      background: ${COLOR_MINT.whiteGlass};
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid ${COLOR_MINT.mintLight};
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(24, 86, 75, 0.15);
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+    
+    .text-emerald-main { color: ${COLOR_MINT.emeraldDark}; font-weight: 800; }
+    
+    .mint-input {
+      border: 1.5px solid ${COLOR_MINT.mintLight} !important;
+      border-radius: 8px !important;
+      padding: 12px 14px !important;
+      background: rgba(255, 255, 255, 0.7) !important;
+      color: #333 !important;
+    }
+    .mint-input::placeholder { color: ${COLOR_MINT.lightGray} !important; }
+    .mint-input:focus { border-color: ${COLOR_MINT.vibrantMint} !important; outline: none; }
+    
+    .btn-mint-submit {
+      background-color: ${COLOR_MINT.vibrantMint} !important;
+      border: none !important;
+      color: white !important;
+      font-weight: 700 !important;
+      padding: 14px !important;
+      border-radius: 8px !important;
+      cursor: pointer;
+      width: 100%;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: background 0.2s ease;
+    }
+    .btn-mint-submit:hover { background-color: #20a878 !important; }
+    
+    .water-link { color: ${COLOR_MINT.waterGreen}; font-size: 13px; text-decoration: none; font-weight: 600; cursor: pointer; }
+    .water-link:hover { text-decoration: underline; }
+    
+    .portal-card-select {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1.5px solid ${COLOR_MINT.mintLight};
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      flex: 1;
+      min-width: 220px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .portal-card-select:hover { transform: translateY(-4px); border-color: ${COLOR_MINT.vibrantMint}; }
+  </style>
+`;
+
 function mostrarPantallaInicio() {
   renderizar(`
-    <div class="auth-screen">
-      <div class="auth-box" style="max-width: 650px;">
-        <div style="text-align:center;margin-bottom:30px">
-            <div style="font-size:52px;margin-bottom:8px">🏥</div>
-            <h1 style="font-size:28px;font-weight:800;letter-spacing:-0.5px">Hospital Central</h1>
-            <p style="color:var(--text-muted); margin-top:10px;">Seleccione su portal de acceso</p>
+    ${estilosLoginComunes}
+    <div class="auth-background">
+      <div class="glass-box" style="max-width: 600px;">
+        <div style="text-align:center; margin-bottom: 35px;">
+            <h1 class="text-emerald-main" style="font-size: 32px; letter-spacing: -0.5px; margin: 0;">Hospital Central</h1>
+            <p style="color: ${COLOR_MINT.lightGray}; margin-top: 8px; font-size: 15px;">Seleccione su portal de acceso al sistema institucional</p>
         </div>
-        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-            <div class="card" style="flex:1; min-width: 200px; text-align:center; cursor:pointer;" onclick="mostrarLoginPaciente()">
-                <div style="font-size: 50px; margin-bottom: 15px;">🧑‍⚕️</div>
-                <h3 style="font-weight: 700;">Portal Pacientes</h3>
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: 10px;">Solicitar turnos y ver historial</p>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div class="portal-card-select" onclick="mostrarLoginPaciente()">
+                <h3 style="color: ${COLOR_MINT.emeraldDark}; font-weight: 700; margin: 0 0 10px 0;">Portal Pacientes</h3>
+                <p style="font-size: 13px; color: ${COLOR_MINT.lightGray}; margin: 0;">Gestión de turnos médicos y consulta de historial clínico</p>
             </div>
-            <div class="card" style="flex:1; min-width: 200px; text-align:center; cursor:pointer;" onclick="mostrarLoginPersonal()">
-                <div style="font-size: 50px; margin-bottom: 15px;">🩺</div>
-                <h3 style="font-weight: 700;">Portal Personal</h3>
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: 10px;">Acceso Médicos y Administración</p>
+            <div class="portal-card-select" onclick="mostrarLoginPersonal()">
+                <h3 style="color: ${COLOR_MINT.emeraldDark}; font-weight: 700; margin: 0 0 10px 0;">Portal Personal</h3>
+                <p style="font-size: 13px; color: ${COLOR_MINT.lightGray}; margin: 0;">Acceso restringido para profesionales médicos y administración</p>
             </div>
         </div>
       </div>
@@ -47,35 +175,51 @@ function mostrarPantallaInicio() {
 
 function mostrarLoginPaciente(errorMsg = '') {
   renderizar(`
-    <div class="auth-screen"><div class="auth-box">
-        <button class="btn btn-ghost" style="margin-bottom:20px;" onclick="mostrarPantallaInicio()">← Volver</button>
-        <div style="text-align:center;margin-bottom:28px"><div style="font-size:40px;">🧑‍⚕️</div><h1 style="font-size:24px;font-weight:800;">Pacientes</h1></div>
-        <div class="card" style="border-top: 4px solid #0ea5e9">
-          <div class="field"><label>Usuario</label><input id="login-user" class="input" placeholder="Ej: paciente" onkeydown="if(event.key==='Enter') ejecutarLogin('PACIENTE')" /></div>
-          <div class="field"><label>Contraseña</label><input id="login-pass" class="input" type="password" placeholder="1234" onkeydown="if(event.key==='Enter') ejecutarLogin('PACIENTE')" /></div>
-          ${errorMsg ? `<p class="error-msg">⚠️ ${errorMsg}</p>` : ''}
-          <button class="btn btn-primary" style="width:100%;padding:12px; background-color: #0ea5e9; border-color: #0ea5e9;" onclick="ejecutarLogin('PACIENTE')">Ingresar</button>
+    ${estilosLoginComunes}
+    <div class="auth-background">
+      <div class="glass-box" style="max-width: 420px;">
+        <span class="water-link" onclick="mostrarPantallaInicio()" style="display:inline-block; margin-bottom:20px;">Volver al inicio</span>
+        <div style="text-align:center; margin-bottom:25px;">
+            <h2 class="text-emerald-main" style="font-size: 24px; margin: 0;">Portal Pacientes</h2>
         </div>
-    </div></div>
+        <div>
+          <div class="field"><label style="color: ${COLOR_MINT.emeraldDark}; font-weight: 600; font-size: 13px;">Usuario o DNI</label><input id="login-user" class="input mint-input" placeholder="Ingrese su usuario" onkeydown="if(event.key==='Enter') ejecutarLogin('PACIENTE')" /></div>
+          <div class="field" style="margin-top:15px;"><label style="color: ${COLOR_MINT.emeraldDark}; font-weight: 600; font-size: 13px;">Contraseña</label><input id="login-pass" class="input mint-input" type="password" placeholder="Ingrese su clave" onkeydown="if(event.key==='Enter') ejecutarLogin('PACIENTE')" /></div>
+          ${errorMsg ? `<p style="color:#dc2626; font-size:13px; margin: 10px 0 0 0;">${errorMsg}</p>` : ''}
+          <div style="margin: 20px 0 15px 0;">
+            <button class="btn-mint-submit" onclick="ejecutarLogin('PACIENTE')">Iniciar Sesión</button>
+          </div>
+          <div style="text-align: center; margin-top: 15px;">
+            <span class="water-link">¿Olvidó su contraseña?</span>
+          </div>
+        </div>
+      </div>
+    </div>
   `);
 }
 
 function mostrarLoginPersonal(errorMsg = '') {
   renderizar(`
-    <div class="auth-screen"><div class="auth-box">
-        <button class="btn btn-ghost" style="margin-bottom:20px;" onclick="mostrarPantallaInicio()">← Volver</button>
-        <div style="text-align:center;margin-bottom:28px"><div style="font-size:40px;">🏥</div><h1 style="font-size:24px;font-weight:800;">Institucional</h1></div>
-        <div class="card" style="border-top: 4px solid var(--accent)">
-          <div class="field"><label>Usuario</label><input id="login-user" class="input" placeholder="Ej: admin o doctor" onkeydown="if(event.key==='Enter') ejecutarLogin('PERSONAL')" /></div>
-          <div class="field"><label>Contraseña</label><input id="login-pass" class="input" type="password" placeholder="1234" onkeydown="if(event.key==='Enter') ejecutarLogin('PERSONAL')" /></div>
-          ${errorMsg ? `<p class="error-msg">⚠️ ${errorMsg}</p>` : ''}
-          <button class="btn btn-primary" style="width:100%;padding:12px" onclick="ejecutarLogin('PERSONAL')">Iniciar Sesión Segura</button>
+    ${estilosLoginComunes}
+    <div class="auth-background">
+      <div class="glass-box" style="max-width: 420px;">
+        <span class="water-link" onclick="mostrarPantallaInicio()" style="display:inline-block; margin-bottom:20px;">Volver al inicio</span>
+        <div style="text-align:center; margin-bottom:25px;">
+            <h2 class="text-emerald-main" style="font-size: 24px; margin: 0;">Acceso Institucional</h2>
         </div>
-    </div></div>
+        <div>
+          <div class="field"><label style="color: ${COLOR_MINT.emeraldDark}; font-weight: 600; font-size: 13px;">Usuario Corporativo</label><input id="login-user" class="input mint-input" placeholder="Ej: médico o administrador" onkeydown="if(event.key==='Enter') ejecutarLogin('PERSONAL')" /></div>
+          <div class="field" style="margin-top:15px;"><label style="color: ${COLOR_MINT.emeraldDark}; font-weight: 600; font-size: 13px;">Clave de Seguridad</label><input id="login-pass" class="input mint-input" type="password" placeholder="Ingrese su clave" onkeydown="if(event.key==='Enter') ejecutarLogin('PERSONAL')" /></div>
+          ${errorMsg ? `<p style="color:#dc2626; font-size:13px; margin: 10px 0 0 0;">${errorMsg}</p>` : ''}
+          <div style="margin: 20px 0 15px 0;">
+            <button class="btn-mint-submit" onclick="ejecutarLogin('PERSONAL')">Autenticación Segura</button>
+          </div>
+        </div>
+      </div>
+    </div>
   `);
 }
 
-// --- SIDEBAR Y HELPERS ---
 function badgeEstado(estadoStr) {
   const config = { PENDIENTE: { color: '#f4a261', label: 'Pendiente' }, EN_CURSO: { color: '#4cc9f0', label: 'En curso' }, COMPLETADO: { color: '#2a9d8f', label: 'Completado' }, CANCELADO: { color: '#e63946', label: 'Cancelado' }, AUSENTE: { color: '#e63946', label: 'Ausente' } };
   const c = config[estadoStr] || { color: '#888', label: estadoStr };
@@ -83,39 +227,19 @@ function badgeEstado(estadoStr) {
 }
 
 function badgeRol(rol) {
-  const colores = { ADMIN: '#f59e0b', DOCTOR: '#34d399', PACIENTE: '#60a5fa' };
+  const colores = { ADMIN: COLOR_MINT.emeraldDark, DOCTOR: COLOR_MINT.vibrantMint, PACIENTE: COLOR_MINT.waterGreen };
   return `<span class="badge" style="background:${colores[rol]}22;color:${colores[rol]}">${rol}</span>`;
 }
 
 function nombreEspecialidad(id) { const esp = estado.especialidades.find(e => e.id == id); return esp ? esp.nombre : '—'; }
-function colorEspecialidad(id) { const esp = estado.especialidades.find(e => e.id == id); return esp ? esp.color : '#888'; }
 
 function htmlSidebar(seccionActiva) {
   const { usuario } = estado;
-  const itemsComunes = [{ id: 'dashboard', icon: '📊', label: 'Panel Principal' }];
   
-  // Secciones exclusivas del Paciente con sus URLs asociadas
-  const itemsPaciente = [
-    { id: 'nuevo_turno', icon: '➕', label: 'Pedir Turno' }, 
-    { id: 'mis_turnos', icon: '📅', label: 'Mis Turnos' },
-    { id: 'historial', icon: '📂', label: 'Historial Médico' }
-  ];
-  
-  // Secciones exclusivas del Médico con sus URLs asociadas
-  const itemsPersonal = [
-    { id: 'mis_turnos', icon: '📅', label: 'Mi Agenda de Turnos' },
-    { id: 'mi_agenda_doc', icon: '导', label: 'Configurar Mis Horarios' }
-  ];
-  
-  // Secciones exclusivas del Administrador con sus URLs asociadas
-  const itemsAdmin = [
-    { id: 'usuarios', icon: '👨‍⚕️', label: 'Gestión Médicos' },
-    { id: 'todos_turnos', icon: '📋', label: 'Supervisar Turnos' },
-    { id: 'gestionar_esp', icon: '🩺', label: 'Especialidades' },
-    { id: 'agenda', icon: '📆', label: 'Horarios Generales' },
-    { id: 'pagos', icon: '💰', label: 'Gestión de Pagos' },
-    { id: 'suspensiones', icon: '🚫', label: 'Suspensiones' }
-  ];
+  const itemsComunes = [{ id: 'dashboard', label: 'Panel Principal' }];
+  const itemsPaciente = [{ id: 'nuevo_turno', label: 'Pedir Turno' }, { id: 'mis_turnos', label: 'Mis Turnos' }, { id: 'historial', label: 'Historial Médico' }];
+  const itemsPersonal = [{ id: 'mis_turnos', label: 'Mi Agenda de Turnos' }, { id: 'mi_agenda_doc', label: 'Configurar Mis Horarios' }];
+  const itemsAdmin = [{ id: 'usuarios', label: 'Gestión Médicos' }, { id: 'todos_turnos', label: 'Supervisar Turnos' }, { id: 'gestionar_esp', label: 'Especialidades' }, { id: 'agenda', label: 'Horarios Generales' }, { id: 'pagos', label: 'Gestión de Pagos' }, { id: 'suspensiones', label: 'Suspensiones' }];
 
   let items = [...itemsComunes];
   if (usuario.rol === 'PACIENTE') items = [...items, ...itemsPaciente];
@@ -123,12 +247,22 @@ function htmlSidebar(seccionActiva) {
   if (usuario.rol === 'ADMIN') items = [...items, ...itemsAdmin];
 
   const navHTML = items.map(item => `
-    <div class="nav-item ${seccionActiva === item.id ? 'active' : ''}" onclick="navegarA('${item.id}')">
-      <span>${item.icon}</span><span>${item.label}</span>
+    <div class="nav-item ${seccionActiva === item.id ? 'active' : ''}" style="${seccionActiva === item.id ? `background: ${COLOR_MINT.bgTint}; color: ${COLOR_MINT.emeraldDark}; border-left: 4px solid ${COLOR_MINT.vibrantMint};` : ''}" onclick="navegarA('${item.id}')">
+      <span style="font-weight: 600;">${item.label}</span>
     </div>
   `).join('');
 
-  return `<div id="sidebar"><div class="sidebar-header"><div style="font-size:24px;margin-bottom:4px">🏥</div><div style="font-weight:700;font-size:14px">Hospital Central</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${usuario.nombreCompleto}</div><div style="margin-top:6px">${badgeRol(usuario.rol)}</div></div><nav style="flex:1">${navHTML}</nav><button class="btn btn-ghost" style="width:100%;margin-top:16px" onclick="cerrarSesion()">🚪 Cerrar sesión</button></div>`;
+  return `
+    <div id="sidebar" style="background-color: ${COLOR_MINT.emeraldDark}; color: #fff;">
+      <div class="sidebar-header" style="border-bottom: 1px solid ${COLOR_MINT.mintLight}33;">
+        <div style="font-weight:800; font-size:18px; color:#fff;">Hospital Central</div>
+        <div style="font-size:12px; color:${COLOR_MINT.mintLight}; margin-top:2px;">${usuario.nombreCompleto}</div>
+        <div style="margin-top:8px;">${badgeRol(usuario.rol)}</div>
+      </div>
+      <nav style="flex:1; margin-top: 15px;">${navHTML}</nav>
+      <button class="btn btn-ghost" style="width:100%; margin-top:16px; border:1px solid ${COLOR_MINT.mintLight}44; color: #fff;" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+  `;
 }
 
 function renderDashboard() {
@@ -140,22 +274,72 @@ function renderDashboard() {
   let htmlEspecialidades = '';
   if (usuario.rol !== 'PACIENTE') {
     htmlEspecialidades = `
-      <div class="card"><h3 style="font-weight:700;margin-bottom:16px">Especialidades Activas</h3>
+      <div class="card" style="background: white; border: 1px solid ${COLOR_MINT.mintLight};"><h3 style="font-weight:700; margin-bottom:16px; color: ${COLOR_MINT.emeraldDark};">Especialidades Activas</h3>
         <div class="grid-branches">
-          ${especialidades.map(e => `<div style="background:var(--bg-deep);border:1px solid ${e.color}33;border-radius:10px;padding:14px 12px;display:flex;align-items:center;gap:10px"><span style="font-size:22px">${e.icono}</span><span style="font-size:13px;font-weight:600;color:${e.color}">${e.nombre}</span></div>`).join('')}
+          ${especialidades.map(e => `<div style="background:${COLOR_MINT.bgTint}; border:1px solid ${COLOR_MINT.mintLight}44; border-radius:10px; padding:14px 12px; display:flex; align-items:center;"><span style="font-size:14px; font-weight:600; color:${COLOR_MINT.emeraldDark};">${e.nombre}</span></div>`).join('')}
         </div>
       </div>
     `;
   }
 
   renderizar(`
-    <div id="app-layout">${htmlSidebar('dashboard')}<div id="main-content" class="fade-in">
-      <h1 class="page-title">Bienvenido, ${usuario.nombreCompleto.split(' ')[0]} 👋</h1>
-      <div class="grid-stats">
-        <div class="card" style="border-left:3px solid #f4a261"><div style="font-size:26px;margin-bottom:8px">⏳</div><div style="font-size:28px;font-weight:800;color:#f4a261">${totalPendientes}</div><div style="color:var(--text-muted);font-size:13px">Turnos pendientes</div></div>
-        <div class="card" style="border-left:3px solid #2a9d8f"><div style="font-size:26px;margin-bottom:8px">✅</div><div style="font-size:28px;font-weight:800;color:#2a9d8f">${totalCompletados}</div><div style="color:var(--text-muted);font-size:13px">Turnos Completados</div></div>
+    <div id="app-layout">${htmlSidebar('dashboard')}<div id="main-content" class="fade-in" style="background-color: ${COLOR_MINT.bgTint};">
+      <h1 class="page-title" style="color: ${COLOR_MINT.emeraldDark};">Bienvenido, ${usuario.nombreCompleto.split(' ')[0]}</h1>
+      <div class="grid-stats" style="margin-bottom: 25px;">
+        <div class="card" style="border-left:4px solid ${COLOR_MINT.waterGreen}; background: white;"><div style="font-size:28px; font-weight:800; color:${COLOR_MINT.waterGreen};">${totalPendientes}</div><div style="color:${COLOR_MINT.lightGray}; font-size:13px; margin-top:5px;">Turnos pendientes</div></div>
+        <div class="card" style="border-left:4px solid ${COLOR_MINT.vibrantMint}; background: white;"><div style="font-size:28px; font-weight:800; color:${COLOR_MINT.vibrantMint};">${totalCompletados}</div><div style="color:${COLOR_MINT.lightGray}; font-size:13px; margin-top:5px;">Turnos Completados</div></div>
       </div>
       ${htmlEspecialidades}
+    </div></div>
+  `);
+}
+
+function renderMisTurnos() {
+  const { usuario } = estado;
+  const turnosVisibles = filtrarTurnosPorRol(estado.turnos, usuario);
+  let filasHTML = '';
+  
+  if (turnosVisibles.length === 0) {
+    filasHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">No hay turnos registrados en el sistema.</td></tr>';
+  } else {
+    filasHTML = turnosVisibles.map(t => {
+      const esp = estado.especialidades.find(e => e.id == t.especialidadId);
+      const nombreColumnaExtra = usuario.rol === 'PACIENTE' ? t.doctorNombre : t.pacienteNombre;
+      return `
+        <tr>
+          <td><strong>${t.codigoTurno}</strong></td>
+          <td>${t.fecha} | ${t.hora} hs</td>
+          <td>${esp ? esp.nombre : '—'}</td>
+          <td>${nombreColumnaExtra}</td>
+          <td>${badgeEstado(t.estado)}</td>
+          <td style="text-align:center;">
+            ${usuario.rol === 'DOCTOR' && t.estado === 'PENDIENTE' 
+              ? `<button class="btn btn-primary" style="font-size:12px; padding:4px 8px; background-color:${COLOR_MINT.vibrantMint}; border-color:${COLOR_MINT.vibrantMint};" onclick="notificar('Atención registrada'); navegarA('dashboard')">Atender</button>` 
+              : `<span style="color:${COLOR_MINT.lightGray}; font-size:12px;">Sin acciones</span>`}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  const tituloPagina = usuario.rol === 'ADMIN' ? 'Supervisar Todos los Turnos' : 'Mis Turnos Programados';
+  const menuActivo = usuario.rol === 'ADMIN' ? 'todos_turnos' : 'mis_turnos';
+
+  renderizar(`
+    <div id="app-layout">${htmlSidebar(menuActivo)}<div id="main-content" class="fade-in" style="background-color: ${COLOR_MINT.bgTint};">
+      <h1 class="page-title" style="color: ${COLOR_MINT.emeraldDark};">${tituloPagina}</h1>
+      <div class="card" style="border-top: 4px solid ${COLOR_MINT.emeraldDark}; background: white; margin-top:20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr style="background-color: ${COLOR_MINT.emeraldDark}; color: white;">
+                <th>Código</th><th>Fecha y Hora</th><th>Especialidad</th><th>${usuario.rol === 'PACIENTE' ? 'Profesional' : 'Paciente'}</th><th>Estado</th><th style="text-align:center;">Acción</th>
+              </tr>
+            </thead>
+            <tbody>${filasHTML}</tbody>
+          </table>
+        </div>
+      </div>
     </div></div>
   `);
 }

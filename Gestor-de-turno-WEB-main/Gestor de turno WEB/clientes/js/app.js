@@ -1,7 +1,3 @@
-/* =========================================================================
-   CONTROLADOR CENTRAL DE ACCESO Y ENRUTAMIENTO POR URL (TODOS LOS ROLES)
-========================================================================= */
-
 async function ejecutarLogin(tipoPortal) {
   const username = document.getElementById('login-user').value.trim();
   const password = document.getElementById('login-pass').value;
@@ -69,9 +65,6 @@ function navegarA(seccion) {
   window.location.hash = seccion;
 }
 
-/* =========================================================================
-   ESCUCHADOR DE CAMBIOS DE URL (El cerebro del ruteo)
-========================================================================= */
 window.addEventListener('hashchange', () => {
   const seccion = window.location.hash.replace('#', '');
 
@@ -119,9 +112,6 @@ window.addEventListener('hashchange', () => {
   }
 });
 
-/* =========================================================================
-   ARRANQUE SEGURO
-========================================================================= */
 if (window.location.hash !== '') {
     window.location.hash = '';
 } else {
