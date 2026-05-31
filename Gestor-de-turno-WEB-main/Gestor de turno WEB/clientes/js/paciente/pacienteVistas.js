@@ -2,7 +2,7 @@ function renderNuevoTurno() {
   const { paso, especialidadId, doctorId } = estado.nuevoTurno;
   let contenido = '';
 
-  //SELECCIÓN DE ESPECIALIDAD
+  // 1. SELECCIÓN DE ESPECIALIDAD
   if (paso === 1) {
     contenido = `
       <div class="grid-branches">
@@ -14,7 +14,7 @@ function renderNuevoTurno() {
       </div>
     `;
   }
-  // SELECCIÓN DE PROFESIONAL
+  // 2. SELECCIÓN DE PROFESIONAL
   else if (paso === 2) {
     const esp = estado.especialidades.find(e => e.id == especialidadId);
     const medicosFiltrados = estado.usuarios.filter(u => u.rol === 'DOCTOR' && u.especialidadId == especialidadId);
@@ -33,7 +33,7 @@ function renderNuevoTurno() {
       </div>
     `;
   }
-  // CALENDARIO DE TURNOS
+  // 3. CALENDARIO DE TURNOS (BLINDADO CON ESTILOS EN LÍNEA)
   else if (paso === 3) {
     const esp = estado.especialidades.find(e => e.id == especialidadId);
     const doc = estado.usuarios.find(u => u.id == doctorId);
@@ -43,8 +43,15 @@ function renderNuevoTurno() {
     const diasEnMes = new Date(anioActual, mesActual + 1, 0).getDate();
     let offset = primerDia === 0 ? 6 : primerDia - 1;
     
+    // Variables de estilo robustas
+    const estilosCeldaVacia = `background:#f8fafc; min-height:95px; padding:6px; display:flex; flex-direction:column; gap:5px;`;
+    const estilosCeldaActiva = `background:white; min-height:95px; padding:6px; display:flex; flex-direction:column; gap:5px;`;
+    const estilosEvento = `background:${COLOR_MINT.vibrantMint}; color:white; text-align:center; padding:5px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1);`;
+
     let celdas = '';
-    for (let i = 0; i < offset; i++) celdas += `<div class="cal-day empty" style="background: #e2e8f0;"></div>`;
+    for (let i = 0; i < offset; i++) {
+      celdas += `<div style="${estilosCeldaVacia}"></div>`;
+    }
     
     const agendasDelDoc = estado.agendas.filter(a => a.doctorId == doctorId);
 
@@ -52,20 +59,34 @@ function renderNuevoTurno() {
       const fechaFmt = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
       const diaDeLaSemana = new Date(anioActual, mesActual, dia).getDay();
       const turnosDia = agendasDelDoc.filter(a => a.diaSemana === diaDeLaSemana);
-      const turnosBtn = turnosDia.map(t => `<div class="turno-btn-mint" onclick="seleccionarTurnoCalendario('${fechaFmt}', '${t.horaInicio}')">${t.horaInicio}</div>`).join('');
-      celdas += `<div class="cal-day" style="background: white; border: 1px solid #e2e8f0;"><div class="cal-num" style="color: ${COLOR_MINT.emeraldDark}; font-weight:700;">${dia}</div>${turnosBtn}</div>`;
+      
+      const turnosBtn = turnosDia.map(t => `
+        <div class="cal-evento-paciente" style="${estilosEvento}" onclick="seleccionarTurnoCalendario('${fechaFmt}', '${t.horaInicio}')">
+          ${t.horaInicio}
+        </div>
+      `).join('');
+      
+      celdas += `
+        <div class="cal-dia-celda-paciente" style="${estilosCeldaActiva}">
+          <div style="color: ${COLOR_MINT.emeraldDark}; font-weight:700;">${dia}</div>
+          ${turnosBtn}
+        </div>
+      `;
+    }
+
+    // Inyectar estilos hover en <head>
+    const styleId = 'cal-paciente-styles';
+    if (!document.getElementById(styleId)) {
+      const tag = document.createElement('style');
+      tag.id = styleId;
+      tag.textContent = `
+        .cal-dia-celda-paciente:hover { background: #f0faf7 !important; }
+        .cal-evento-paciente:hover { background: #20a878 !important; transform: scale(1.02); }
+      `;
+      document.head.appendChild(tag);
     }
 
     contenido = `
-      <style>
-        .mint-cal-container { font-family: sans-serif; background: #fff; border: 1px solid ${COLOR_MINT.mintLight}; margin-top: 10px; border-radius: 8px; overflow: hidden; }
-        .cal-header-mint { display: grid; grid-template-columns: repeat(7, 1fr); background: ${COLOR_MINT.emeraldDark}; color: white; text-align: center; font-weight: 700; font-size: 12px; }
-        .cal-header-mint div { padding: 12px 0; border-right: 1px solid ${COLOR_MINT.mintLight}33; }
-        .cal-grid-mint { display: grid; grid-template-columns: repeat(7, 1fr); background: #cbd5e1; gap: 1px; }
-        .cal-day { min-height: 95px; padding: 6px; display: flex; flex-direction: column; gap: 5px; }
-        .turno-btn-mint { background: ${COLOR_MINT.vibrantMint}; color: white; text-align: center; padding: 5px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; transition: background 0.2s; }
-        .turno-btn-mint:hover { background: #20a878; }
-      </style>
       <div class="card" style="max-width:800px; width: 100%; background: white; border: 1px solid ${COLOR_MINT.mintLight};">
         <h3 style="margin-bottom:3px; color: ${COLOR_MINT.emeraldDark}; font-weight:700;">Turnos Disponibles con ${doc.nombreCompleto}</h3>
         <p style="color: ${COLOR_MINT.lightGray}; font-size:13px; margin-bottom:15px; margin-top:0;">Especialidad: ${esp.nombre}</p>
@@ -76,15 +97,26 @@ function renderNuevoTurno() {
           <button class="btn btn-ghost" style="border: 1px solid ${COLOR_MINT.mintLight}; color: ${COLOR_MINT.emeraldDark};" onclick="cambiarMesTurnosPaciente(1)">Siguiente</button>
         </div>
 
-        <div class="mint-cal-container">
-          <div class="cal-header-mint"><div>LUN</div><div>MAR</div><div>MIE</div><div>JUE</div><div>VIE</div><div>SAB</div><div>DOM</div></div>
-          <div class="cal-grid-mint">${celdas}</div>
+        <div style="background:white; border:1px solid ${COLOR_MINT.mintLight}; border-radius:8px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.04);">
+          <div style="display:grid; grid-template-columns:repeat(7, 1fr); background:${COLOR_MINT.emeraldDark}; color:white; text-align:center; font-weight:700; font-size:12px; letter-spacing:0.5px;">
+            <div style="padding:12px 0; border-right:1px solid rgba(255,255,255,0.1);">LUN</div>
+            <div style="padding:12px 0; border-right:1px solid rgba(255,255,255,0.1);">MAR</div>
+            <div style="padding:12px 0; border-right:1px solid rgba(255,255,255,0.1);">MIE</div>
+            <div style="padding:12px 0; border-right:1px solid rgba(255,255,255,0.1);">JUE</div>
+            <div style="padding:12px 0; border-right:1px solid rgba(255,255,255,0.1);">VIE</div>
+            <div style="padding:12px 0; border-right:1px solid rgba(255,255,255,0.1);">SÁB</div>
+            <div style="padding:12px 0;">DOM</div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(7, 1fr); background:#cbd5e1; gap:1px;">
+            ${celdas}
+          </div>
         </div>
+        
         <button class="btn btn-ghost" style="margin-top:20px; border:1px solid ${COLOR_MINT.mintLight}; color: ${COLOR_MINT.waterGreen};" onclick="irPasoTurno(2)">Volver a Médicos</button>
       </div>
     `; 
   }
-  // CONFIRMACIÓN FINAL
+  // 4. CONFIRMACIÓN FINAL
   else if (paso === 4) {
     const esp = estado.especialidades.find(e => e.id == especialidadId);
     const doc = estado.usuarios.find(u => u.id == doctorId);
@@ -121,5 +153,22 @@ function renderHistorial() {
 
   const estilosImpresion = `<style>@media print { #sidebar, .btn { display: none !important; } #main-content { margin: 0 !important; padding: 0 !important; width: 100% !important; background: white !important; color: black !important; } body, .card { background: white !important; color: black !important; border: none !important; box-shadow: none !important; } }</style>`;
 
-  renderizar(`${estilosImpresion}<div id="app-layout">${htmlSidebar('historial')}<div id="main-content" class="fade-in" style="background-color: ${COLOR_MINT.bgTint};"><h1 class="page-title" style="color: ${COLOR_MINT.emeraldDark};">Mi Historial Médico</h1><div class="card" style="margin-top:20px; border-top: 4px solid ${COLOR_MINT.waterGreen}; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);"><div class="table-wrapper"><table><thead><tr style="background-color: ${COLOR_MINT.emeraldDark}; color: white;"><th>Fecha</th><th>Especialidad</th><th>Médico</th><th>Diagnóstico</th><th style="text-align:center;">Descargar</th></tr></thead><tbody>${filasHTML}</tbody></table></div></div></div></div>`);
+  renderizar(`
+    ${estilosImpresion}
+    <div id="app-layout">${htmlSidebar('historial')}<div id="main-content" class="fade-in" style="background-color: ${COLOR_MINT.bgTint};">
+      <h1 class="page-title" style="color: ${COLOR_MINT.emeraldDark};">Mi Historial Médico</h1>
+      <div class="card" style="margin-top:20px; border-top: 4px solid ${COLOR_MINT.waterGreen}; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr style="background-color: ${COLOR_MINT.emeraldDark}; color: white;">
+                <th>Fecha</th><th>Especialidad</th><th>Médico</th><th>Diagnóstico</th><th style="text-align:center;">Descargar</th>
+              </tr>
+            </thead>
+            <tbody>${filasHTML}</tbody>
+          </table>
+        </div>
+      </div>
+    </div></div>
+  `);
 }

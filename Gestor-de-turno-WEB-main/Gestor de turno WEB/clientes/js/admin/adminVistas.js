@@ -123,11 +123,16 @@ function renderAgenda() {
   const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const primerDia = new Date(anioActual, mesActual, 1).getDay();
   const diasEnMes = new Date(anioActual, mesActual + 1, 0).getDate();
-  let offsetCeldasVacias = primerDia === 0 ? 6 : primerDia - 1; 
+  let offsetCeldasVacias = primerDia === 0 ? 6 : primerDia - 1;
+
+  const estilosCeldaVacia = `min-height:110px; padding:8px; display:flex; flex-direction:column; gap:5px; background:#f8fafc;`;
+  const estilosCeldaActiva = `min-height:110px; padding:8px; display:flex; flex-direction:column; gap:5px; background:white;`;
+  const estilosEvento = `background:${COLOR_MINT.waterGreen}; color:#fff; font-size:11px; padding:5px 8px; border-radius:4px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);`;
 
   let celdasHTML = '';
-  // Celdas vacías con color gris muy clarito para no desentonar
-  for (let i = 0; i < offsetCeldasVacias; i++) celdasHTML += `<div class="cal-day empty" style="background: #f8fafc;"></div>`;
+  for (let i = 0; i < offsetCeldasVacias; i++) {
+    celdasHTML += `<div style="${estilosCeldaVacia}"></div>`;
+  }
 
   for (let dia = 1; dia <= diasEnMes; dia++) {
     const diaDeLaSemana = new Date(anioActual, mesActual, dia).getDay();
@@ -135,36 +140,32 @@ function renderAgenda() {
     
     const eventosHTML = eventosDia.map(e => {
       const doc = estado.usuarios.find(u => u.id == e.doctorId);
-      return `<div class="cal-event-admin-mint" onclick="borrarAgenda(${e.id})" title="Eliminar horario">${e.horaInicio} - ${doc ? doc.nombreCompleto.split(' ')[1] : 'Med'}</div>`;
+      return `<div style="${estilosEvento}" onclick="borrarAgenda(${e.id})" title="Clic para eliminar este horario">${e.horaInicio} - ${doc ? doc.nombreCompleto.split(' ')[1] : 'Med'}</div>`;
     }).join('');
     
-    // Celdas activas en blanco puro
-    celdasHTML += `<div class="cal-day" style="background: white;"><div class="cal-num" style="color: ${COLOR_MINT.emeraldDark}; font-weight:800; font-size:14px;">${dia}</div>${eventosHTML}</div>`;
+    celdasHTML += `<div style="${estilosCeldaActiva}"><div style="color:${COLOR_MINT.emeraldDark}; font-weight:800; font-size:14px;">${dia}</div>${eventosHTML}</div>`;
   }
 
   const opcionesEsp = estado.especialidades.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
 
-  const estilosCalendarioAdmin = `
-    <style>
-      .mint-cal-wrapper-admin { font-family: 'Segoe UI', sans-serif; background: #fff; border: 1px solid ${COLOR_MINT.mintLight}; margin-top: 20px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
-      .cal-header-row-admin { display: grid; grid-template-columns: repeat(7, 1fr); background: ${COLOR_MINT.emeraldDark}; color: white; text-align: center; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
-      .cal-header-row-admin div { padding: 14px 0; border-right: 1px solid rgba(255,255,255,0.1); }
-      .cal-grid-admin { display: grid; grid-template-columns: repeat(7, 1fr); background: #e2e8f0; gap: 1px; }
-      .cal-day { min-height: 110px; padding: 8px; display: flex; flex-direction: column; gap: 5px; transition: background 0.2s; }
-      .cal-day:hover { background: #fdfdfd !important; }
-      .cal-event-admin-mint { background: ${COLOR_MINT.waterGreen}; color: #fff; font-size: 11px; padding: 5px 8px; border-radius: 4px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.1s; }
-      .cal-event-admin-mint:hover { background: #4f948a; transform: scale(1.02); }
-    </style>
-  `;
+  // Estilos inyectados en <head> para garantizar que el navegador los aplique
+  const styleId = 'cal-admin-styles';
+  if (!document.getElementById(styleId)) {
+    const tag = document.createElement('style');
+    tag.id = styleId;
+    tag.textContent = `
+      .cal-dia-celda:hover { background: #f0faf7 !important; }
+      .cal-evento-bloque:hover { opacity: 0.85; transform: scale(1.02); }
+    `;
+    document.head.appendChild(tag);
+  }
 
   renderizar(`
-    ${estilosCalendarioAdmin}
     <div id="app-layout">${htmlSidebar('agenda')}<div id="main-content" class="fade-in" style="background-color: ${COLOR_MINT.bgTint}; min-height: 100vh;">
       <h1 class="page-title" style="color: ${COLOR_MINT.emeraldDark};">Gestión General de Horarios</h1>
       
       <div class="card" style="margin-bottom: 24px; background: white; border: 1px solid ${COLOR_MINT.mintLight}; border-radius:8px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
         <h3 style="font-weight:700; margin-bottom: 16px; color: ${COLOR_MINT.emeraldDark};">Cargar Bloque de Atención Recurrente</h3>
-        
         <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end;">
           <div class="field" style="flex: 1; min-width: 180px; margin-bottom: 0;">
             <label style="color:${COLOR_MINT.emeraldDark}; font-weight:600; font-size: 13px;">Especialidad</label>
@@ -188,15 +189,25 @@ function renderAgenda() {
         </div>
       </div>
       
-      <div style="display:flex; align-items:center; justify-content:center; gap: 20px; margin-top: 30px;">
+      <div style="display:flex; align-items:center; justify-content:center; gap: 20px; margin-top: 30px; margin-bottom: 20px;">
         <button class="btn btn-ghost" style="border: 1px solid ${COLOR_MINT.mintLight}; color:${COLOR_MINT.emeraldDark}; font-weight:600; padding: 8px 16px;" onclick="cambiarMes(-1)">Anterior</button>
         <h2 style="font-size: 24px; font-weight: 800; width: 250px; text-align:center; color: ${COLOR_MINT.emeraldDark}; margin:0;">${nombresMeses[mesActual]} ${anioActual}</h2>
         <button class="btn btn-ghost" style="border: 1px solid ${COLOR_MINT.mintLight}; color:${COLOR_MINT.emeraldDark}; font-weight:600; padding: 8px 16px;" onclick="cambiarMes(1)">Siguiente</button>
       </div>
       
-      <div class="mint-cal-wrapper-admin">
-        <div class="cal-header-row-admin"><div>LUNES</div><div>MARTES</div><div>MIÉRCOLES</div><div>JUEVES</div><div>VIERNES</div><div>SÁBADO</div><div>DOMINGO</div></div>
-        <div class="cal-grid-admin">${celdasHTML}</div>
+      <div style="background:white; border:1px solid ${COLOR_MINT.mintLight}; border-radius:8px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.04);">
+        <div style="display:grid; grid-template-columns:repeat(7, 1fr); background:${COLOR_MINT.emeraldDark}; color:white; text-align:center; font-weight:700; font-size:13px; letter-spacing:0.5px;">
+          <div style="padding:14px 0; border-right:1px solid rgba(255,255,255,0.1);">LUNES</div>
+          <div style="padding:14px 0; border-right:1px solid rgba(255,255,255,0.1);">MARTES</div>
+          <div style="padding:14px 0; border-right:1px solid rgba(255,255,255,0.1);">MIÉRCOLES</div>
+          <div style="padding:14px 0; border-right:1px solid rgba(255,255,255,0.1);">JUEVES</div>
+          <div style="padding:14px 0; border-right:1px solid rgba(255,255,255,0.1);">VIERNES</div>
+          <div style="padding:14px 0; border-right:1px solid rgba(255,255,255,0.1);">SÁBADO</div>
+          <div style="padding:14px 0;">DOMINGO</div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(7, 1fr); background:#e2e8f0; gap:1px;">
+          ${celdasHTML}
+        </div>
       </div>
     </div></div>
   `);

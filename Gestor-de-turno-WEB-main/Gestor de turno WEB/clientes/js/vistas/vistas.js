@@ -12,6 +12,13 @@ const COLOR_MINT = {
 // BLOQUE PARA FORZAR EL DISEÑO MINT SOBRE EL CSS VIEJO
 const estilosGlobalesMint = `
   <style>
+    /* 1. Matar el fondo azul oscuro viejo de la pantalla de carga/body */
+    body, html {
+      background-color: #ffffff !important;
+      margin: 0;
+      padding: 0;
+    }
+
     /* Forzar el color esmeralda en todas las cabeceras de tablas */
     table thead th, th {
       background-color: ${COLOR_MINT.emeraldDark} !important;
@@ -260,7 +267,8 @@ function htmlSidebar(seccionActiva) {
         <div style="margin-top:8px;">${badgeRol(usuario.rol)}</div>
       </div>
       <nav style="flex:1; margin-top: 15px;">${navHTML}</nav>
-      <button class="btn btn-ghost" style="width:100%; margin-top:16px; border:1px solid ${COLOR_MINT.mintLight}44; color: #fff;" onclick="cerrarSesion()">Cerrar sesión</button>
+      
+      <button class="btn" style="width:100%; margin-top:16px; padding: 12px; background-color: #ef4444; border: 1px solid #dc2626; color: white; font-weight: 700; border-radius: 6px; cursor: pointer;" onclick="cerrarSesion()">Cerrar sesión</button>
     </div>
   `;
 }
