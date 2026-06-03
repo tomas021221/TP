@@ -1,4 +1,22 @@
-async function cambiarEstadoTurno(id, est) { await api.cambiarEstado(id, est); notificar('Estado actualizado'); renderMisTurnos(); }
+async function cambiarEstadoTurno(id, est) { 
+  // 1. Mandamos la orden a la nube
+  const respuesta = await api.cambiarEstado(id, est); 
+  
+  if(respuesta.success) {
+      notificar('✅ Turno actualizado a: ' + est); 
+      
+      // 2. Descargamos los datos frescos desde Supabase
+      const resTurnos = await api.getTurnos();
+      
+      // 3. Actualizamos la memoria de la página y redibujamos la tabla
+      if(resTurnos.success) {
+          estado.turnos = resTurnos.data;
+          renderMisTurnos(); 
+      }
+  } else {
+      notificar('❌ ' + respuesta.error, 'error');
+  }
+}
 function guardarAgendaDoctor() {
   const diaSemana = document.getElementById('doc-agenda-dia').value;
   const horaInicio = document.getElementById('doc-agenda-inicio').value;
